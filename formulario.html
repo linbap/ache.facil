@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cadastro com Foto via WhatsApp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body { font-family: sans-serif; text-align: center; margin: 20px; }
+      input, button { margin: 10px; padding: 10px; font-size: 16px; }
+      video, canvas { margin: 10px auto; border: 1px solid #ccc; }
+    </style>
+  </head>
+  <body>
+    <h2>Cadastro com Foto</h2>
+    <input type="text" id="nome" placeholder="Nome completo" required><br>
+    <input type="text" id="cpf" placeholder="CPF" required><br>
+
+    <video id="video" width="320" height="240" autoplay></video><br>
+    <button id="snap">📸 Capturar</button>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas><br>
+    <button id="enviar">📤 Enviar via WhatsApp</button>
+    <p id="status"></p>
+
+    <script>
+      const nome = document.getElementById('nome');
+      const cpf = document.getElementById('cpf');
+      const snap = document.getElementById('snap');
+      const enviar = document.getElementById('enviar');
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const status = document.getElementById('status');
+      let imageData = "";
+
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => video.srcObject = stream)
+        .catch(err => alert("Erro ao acessar a câmera: " + err));
+
+      snap.addEventListener('click', () => {
+        if (!nome.value.trim() || !cpf.value.trim()) {
+          alert("Por favor, preencha nome e CPF.");
+          return;
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        imageData = canvas.toDataURL('image/png');
+        status.textContent = "📷 Foto capturada.";
+      });
+
+      enviar.addEventListener('click', () => {
+        if (!nome.value.trim() || !cpf.value.trim()) {
+          alert("Preencha o nome e CPF.");
+          return;
+        }
+        if (!imageData) {
+          alert("Capture uma foto antes de enviar.");
+          return;
+        }
+
+        const texto = `*Cadastro com Foto*%0ANome: ${encodeURIComponent(nome.value)}%0ACPF: ${encodeURIComponent(cpf.value)}%0AFoto: enviada abaixo.`;
+        const link = `https://wa.me/5516996315305?text=${texto}`;
+
+        window.open(link, '_blank');
+
+        const a = document.createElement('a');
+        a.href = imageData;
+        a.download = `${nome.value.trim()}_${cpf.value.trim()}.png`;
+        a.click();
+
+        status.textContent = "✅ Mensagem aberta no WhatsApp. Foto baixada automaticamente, envie junto.";
+      });
+    </script>
+  </body>
+</html>
